@@ -1,1 +1,304 @@
+# 🪟 Investigating Windows Event Logs for Security Incidents
+### Windows Forensics | Log Analysis | Blue Team Project
+
+---
+
+## 📌 Project Overview
+
+Windows Event Logs are one of the **most important data sources** used by:
+- SOC Analysts
+- Incident Responders
+- Digital Forensics Analysts
+
+This project teaches you **how to investigate security incidents** by analyzing Windows Event Logs using **Event Viewer, Log Parser, and PowerShell**.
+
+By the end of this project, you will understand:
+- What Windows Event Logs are
+- Why they are important
+- How attackers leave traces in logs
+- How security teams detect suspicious activity
+
+---
+
+## 🎯 Who This Project Is For
+
+✔ Beginners in Cybersecurity  
+✔ Students learning SOC & Blue Team roles  
+✔ Anyone interested in Windows Forensics  
+✔ Freshers preparing for SOC interviews  
+
+No advanced coding required.
+
+---
+
+## 🔐 What is Windows Forensics?
+
+**Windows Forensics** is the process of:
+- Collecting digital evidence from Windows systems
+- Analyzing system and security logs
+- Identifying suspicious or malicious activity
+- Reconstructing attack timelines
+
+👉 In simple words:  
+**Windows Forensics helps us understand what happened on a Windows system after a security incident.**
+
+---
+
+## ❓ Why Windows Event Logs Are Important
+
+Windows automatically records **almost every important activity** in the form of logs.
+
+### Examples:
+- User login and logout
+- Failed password attempts
+- Program execution
+- System crashes
+- Security policy changes
+
+These logs help security teams answer:
+- ❓ Who logged in?
+- ❓ From where?
+- ❓ When?
+- ❓ Was it authorized or suspicious?
+
+---
+
+## 🌍 Real-World Use Cases
+
+Windows Event Log analysis is used in:
+
+- 🔐 Incident Response
+- 🚨 Brute-force attack detection
+- 🕵️ Insider threat investigations
+- 🦠 Malware & ransomware analysis
+- 📑 Legal and compliance audits
+- 🏦 Banking, healthcare, and government security
+
+---
+
+## 🧰 Lab Setup
+
+### System Requirement
+You need **one Windows machine**, either:
+- Physical system  
+OR  
+- Virtual Machine (recommended)
+
+### Virtualization Options
+- Oracle VirtualBox
+- VMware Workstation
+
+---
+
+## 📋 Pre-Requisites (Beginner Friendly)
+
+- Basic understanding of Windows OS
+- Familiarity with Command Prompt or PowerShell
+- Administrator access on the system
+
+---
+
+## 🛠️ Tools Used in This Project
+
+### 1️⃣ Event Viewer
+- Built-in Windows tool
+- Used to **view and analyze logs**
+- No installation required
+
+### 2️⃣ PowerShell
+- Windows command-line and automation tool
+- Used to **query and extract logs quickly**
+
+### 3️⃣ Log Parser
+- Microsoft tool
+- Converts event logs into **CSV files**
+- Very useful for forensic analysis
+
+---
+
+## 🔽 Installing Log Parser
+
+1. Download Log Parser from Microsoft Download Center
+2. Run the installer
+3. Complete installation using default settings
+
+After installation, `LogParser.exe` will be available.
+
+---
+
+# 🧪 LAB EXERCISES
+
+---
+
+## 🧪 Exercise 1: Accessing Windows Event Logs (Event Viewer)
+
+### 🎯 Objective
+Learn how to **open and navigate Windows Event Logs**.
+
+### 🔍 What You Are Learning
+- Where logs are stored
+- Different types of logs
+- How to identify security-related events
+
+### 🪜 Steps
+
+1. Press **Win + R**
+2. Type: `eventvwr.msc`
+3. Press **Enter**
+4. Expand **Windows Logs**
+5. Explore:
+   - Application
+   - Security
+   - System
+
+### 🧠 Key Focus
+- Open **Security Log**
+- Look for login-related events
+
+### ✅ Expected Outcome
+You can:
+- Navigate Event Viewer
+- Identify login events
+- Understand log categories
+
+---
+
+## 🧪 Exercise 2: Filtering & Exporting Failed Logins
+
+### 🎯 Objective
+Filter failed login attempts and export them.
+
+### 🔍 Why This Matters
+Failed login attempts often indicate:
+- Brute-force attacks
+- Credential stuffing
+- Unauthorized access attempts
+
+### 🪜 Steps
+
+1. Open **Security** log in Event Viewer
+2. Right-click → **Filter Current Log**
+3. Enter **Event ID**: `4625`
+4. Click **OK**
+5. Right-click filtered results → **Save Filtered Log File As**
+6. Save as: `FailedLogins.evtx`
+
+### ✅ Expected Outcome
+A separate file containing **only failed login attempts**.
+
+---
+
+## 🧪 Exercise 3: Parsing Logs Using Log Parser
+
+### 🎯 Objective
+Convert event logs into readable CSV format.
+
+### 🔍 Why This Matters
+CSV files:
+- Are easy to analyze
+- Can be imported into Excel, Splunk, etc.
+
+### 🪜 Command
+
+```bash
+LogParser.exe "SELECT TimeGenerated, EventID, EventTypeName, Message FROM FailedLogins.evtx" -i:EVT -o:CSV > FailedLogins.csv
+```
+
+### ✅ Expected Outcome
+A CSV file containing:
+- Time of failed login
+- Event ID
+- Event details
+
+---
+
+## 🧪 Exercise 4: Analyzing Logs Using PowerShell
+
+### 🎯 Objective
+Use PowerShell to automate log analysis.
+
+### 🔍 What You Learn
+- Query logs quickly
+- Automate forensic tasks
+
+### 🪜 Commands
+
+View failed logins:
+
+```powershell
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} |
+  Format-Table TimeCreated, Id, Message -AutoSize
+```
+
+Save output:
+
+```powershell
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} |
+  Export-Csv -Path FailedLogins.csv -NoTypeInformation
+```
+
+> Tip: Use `Out-File` if you want raw text output instead of CSV.
+
+### ✅ Expected Outcome
+- Console output of failed logins
+- Saved forensic report (`FailedLogins.csv`)
+
+---
+
+## 🧪 Exercise 5: Correlating Events (Advanced Analysis)
+
+### 🎯 Objective
+Compare failed and successful logins.
+
+### 🔍 Why This Matters
+Detect brute-force success
+
+### 🪜 Correlation Logic
+- Event ID `4625` → Failed login
+- Event ID `4624` → Successful login
+
+Use timestamps, account names, and source IPs to correlate sequences of failures followed by a success.
+
+### 🧪 Analysis Outcome
+- Identify patterns
+- Detect suspicious user behavior
+- Build attack timeline
+
+---
+
+## 🎓 Learning Outcomes
+By completing this project, you will be able to:
+- Investigate Windows security incidents
+- Analyze authentication failures
+- Correlate multiple log sources
+- Think like a SOC analyst
+- Prepare forensic reports
+
+---
+
+## 🚀 Career Relevance
+This project aligns with roles like:
+- SOC Analyst
+- Security Analyst
+- Incident Responder
+- Digital Forensics Analyst
+
+---
+
+## ⚠️ Disclaimer
+This project is for educational and authorized environments only.
+Do NOT analyze systems without proper permission.
+
+---
+
+## 👤 Author
+Hackify Cybertech
+Cybersecurity Training & Practical Projects
+
+---
+
+## 📎 Included Files & Next Steps
+- `scripts/parse_failed_logins.ps1` — PowerShell example to parse and export failed logins (Event ID 4625)
+- `diagrams/` — Placeholder for diagrams (PlantUML or SVG)
+
 
