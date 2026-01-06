@@ -292,13 +292,9 @@ Do NOT analyze systems without proper permission.
 ---
 
 ## 👤 Author
-Hackify Cybertech
+Shakti Prasad Mahapatro
 Cybersecurity Training & Practical Projects
 
 ---
-
-## 📎 Included Files & Next Steps
-- `scripts/parse_failed_logins.ps1` — PowerShell example to parse and export failed logins (Event ID 4625)
-- `diagrams/` — Placeholder for diagrams (PlantUML or SVG)
 
 
