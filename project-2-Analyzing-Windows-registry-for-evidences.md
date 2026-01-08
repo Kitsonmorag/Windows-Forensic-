@@ -12,6 +12,8 @@ A hands‑on lab using **Volatility** to extract and analyze Windows Registry hi
 ---
 
 ## 🔧 Lab Setup & Prerequisites
+To complete this project, you will need access to a Windows operating system and a memory image for analysis. You can use a physical machine or set up a virtual machine using software like VirtualBox or VMware.
+
 - ✅ **Environment:** Windows analysis machine (physical or VM)
 - ✅ **Permissions:** Administrative privileges on the analysis machine
 - ✅ **Knowledge:** Basic Windows/Registry concepts and CLI familiarity
