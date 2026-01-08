@@ -1,5 +1,7 @@
 # 🧭 Lab: Analyzing Windows Registry for Evidence of Malicious Activity
 
+The Windows Registry is a critical hierarchical database that stores low-level settings for the operating system and installed applications. Analyzing the Windows Registry can reveal traces of malicious activity and provide valuable evidence during forensic investigations. This project will guide you through the process of using the Volatility tool to analyze Windows Registry hives and identify potential security incidents.
+
 A hands‑on lab using **Volatility** to extract and analyze Windows Registry hives from a memory image to find persistence, user activity, and other forensic artifacts.
 
 ---
@@ -19,6 +21,9 @@ To complete this project, you will need access to a Windows operating system and
 - ✅ **Knowledge:** Basic Windows/Registry concepts and CLI familiarity
 
 Tools:
+For this project, we will use the following tool:
+1. **Volatility**: An advanced memory forensics framework.
+
 - **Volatility** (Volatility 3 recommended for Python 3; Volatility 2 requires Python 2.7)
 - Optional: Registry Explorer, Rekall, Redline
 
@@ -39,49 +44,58 @@ volatility --help
 ---
 
 ## 🔍 Exercises
-
+**Objective**: Learn how to extract Windows Registry hives from a memory image using Volatility.
 ### 1️⃣ Extracting Windows Registry Hives
 **Objective:** Dump registry hives from a memory image.
 
 Steps:
-1. Discover the profile:
-```sh
-volatility -f <memory_image> imageinfo
+1. Open a command prompt and navigate to the Volatility installation directory.
+2. Run the following command to list the available profiles in the memory image:
 ```
-2. List hives:
-```sh
-volatility -f <memory_image> --profile=<profile> hivelist
-```
+  ```sh
+   volatility -f <memory_image> imageinfo
+   ```
 3. Dump a hive at a virtual address:
 ```sh
-volatility -f <memory_image> --profile=<profile> dumpregistry -o <virtual_address> -D <output_directory>
 ```
+volatility -f <memory_image> --profile=<profile> dumpregistry -o <virtual_address> -D <output_directory>
 
-**Expected:** Hive files saved in `<output_directory>` (e.g., `SYSTEM`, `SAM`, `SOFTWARE`, `NTUSER.DAT`).
+```
+4. Note the virtual addresses of the hives and dump them using the dumpregistry plugin:
+```sh
+volatility -f <memory_image> --profile=<profile> dumpregistry -o <virtual_address> -D <output_directory>
+
+```
+Expected Output: You should be able to extract the Windows Registry hives from the memory image and save them to your specified directory.
 
 ---
 
-### 2️⃣ Analyze the SAM Hive (User Accounts)
+### 2️⃣ Analyze the SAM Hive For user information
 **Objective:** Extract user account info and password hashes.
+Objective: Use Volatility to analyze the SAM hive and extract user account information.
 
 Steps:
-1. Ensure SAM hive is extracted
-2. Run hashdump:
+
+1. Ensure you have extracted the SAM hive from the memory image in Exercise 1.
+2. Run the following command to parse the SAM hive and extract user account information:
 ```sh
 volatility -f <memory_image> --profile=<profile> hashdump -y <system_hive> -s <sam_hive>
 ```
-
-**Expected:** Usernames and NTLM password hash data for offline analysis.
-
+**Expected Output**: You should be able to view user account information, including username and hashed passwords.
 ---
 
 ### 3️⃣ Investigate Autorun Entries (SOFTWARE Hive)
 **Objective:** Detect persistence via autorun keys.
 
 Steps:
-1. Query the Run key in SOFTWARE hive:
+
+1. Ensure you have extracted the Software hive from the memory image in Exercise 1.
+2. Run the following command to analyze autorun entries:
 ```sh
-volatility -f <memory_image> --profile=<profile> printkey -o <software_hive_virtual_address> -K "Microsoft\\Windows\\CurrentVersion\\Run"
+volatility -f <memory_image> --profile=<profile> printkey -o <software_hive_virtual_address> -K "Microsoft\Windows\CurrentVersion\Run"
+```
+
+**Expected Output**: You should be able to identify any autorun entries in the Software hive, which could indicate potential malware persistence mechanisms.
 ```
 
 **Look for:** Unexpected entries, strange command lines, or suspicious paths.
@@ -89,28 +103,31 @@ volatility -f <memory_image> --profile=<profile> printkey -o <software_hive_virt
 ---
 
 ### 4️⃣ Examine UserAssist (NTUSER.DAT)
-**Objective:** Find recently executed programs for a user.
+Objective: Analyze User Assist keys to determine recently accessed applications by a specific user.
 
-Steps:
-1. Ensure `NTUSER.DAT` is dumped
-2. List UserAssist entries:
+**Steps**:
+
+1. Ensure you have extracted the NTUSER.DAT hive from the memory image in Exercise 1.
+2. Run the following command to list User Assist keys:
 ```sh
 volatility -f <memory_image> --profile=<profile> userassist -i
 ```
 
-**Expected:** App names, run counts, last-run times—useful to link suspicious actions to interactive sessions.
-
+**Expected Output**: You should be able to view a list of recently accessed applications and their execution counts, which can help identify suspicious activity.
 ---
 
 ### 5️⃣ Correlate Registry Artifacts
-**Objective:** Build a timeline and hypothesis from multiple registry sources.
+**Objective:** Correlate information from different registry hives to gain a comprehensive understanding of potential malicious activity.
 
-Steps:
-1. Review SAM, SOFTWARE, NTUSER.DAT, SYSTEM and other hives
-2. Look for correlations (e.g., autorun entry + UserAssist execution by same user)
-3. Document findings with timestamps, hashes, and evidence paths
+**Steps**:
 
-**Tip:** Keep timestamps in UTC and preserve original hive files and command outputs for evidence.
+1. Review the extracted data from previous exercises, including user account information, autorun entries, and User Assist keys.
+2. Identify any patterns or correlations that could indicate a security incident.
+3. Document your findings and provide recommendations for further investigation or remediation.
+
+Expected Output: You should be able to correlate registry artifacts and provide a detailed analysis of potential malicious activity, supporting your findings with evidence from the Windows Registry.
+
+With these exercises, you will gain practical experience in analyzing the Windows Registry for evidence of malicious activity using the Volatility tool. This will enhance your skills in memory forensics and help you effectively investigate security incidents.
 
 ---
 
@@ -135,6 +152,6 @@ Steps:
 
 ---
 
-**Author:** Kitsonmorag — Blue Team Lab
+**Author:** Mr Shakti Prasad Mahapatro — Cybersecurity Expert | AI | Automation's
 
 *Additions or feedback welcome. If you'd like, I can open a PR with this file and add it under `training/labs/`.*
