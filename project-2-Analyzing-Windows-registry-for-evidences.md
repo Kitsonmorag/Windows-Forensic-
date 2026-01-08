@@ -31,119 +31,90 @@ Volatility is an advanced open-source memory forensics framework used to extract
 
 ---
 
-## 🔧 Installing Volatility
-```bash
+cat > README.md << 'EOF'
 git clone https://github.com/volatilityfoundation/volatility.git
 cd volatility
 python vol.py -h
-⚠️ Volatility 2.x requires Python 2.7
+Volatility 2.x requires Python 2.7
 
-🧩 Exercises
+Exercises
+
 Exercise 1: Extracting Windows Registry Hives
-🎯 Objective
+
+Objective:
 Extract Windows Registry hives from a memory image using Volatility.
 
-🧪 Steps
-bash
-Copy code
+Steps:
 volatility -f memory_image.raw imageinfo
 volatility -f memory_image.raw --profile=Win7SP1x64 hivelist
 volatility -f memory_image.raw --profile=Win7SP1x64 dumpregistry -o <VIRTUAL_ADDRESS> -D output/
-✅ Expected Output
+
+Expected Output:
 Registry hives:
-
 SAM
-
 SYSTEM
-
 SOFTWARE
-
 NTUSER.DAT
 
 Exercise 2: Analyzing the SAM Hive
-🎯 Objective
+
+Objective:
 Extract user account information and password hashes.
 
-🧪 Steps
-bash
-Copy code
+Steps:
 volatility -f memory_image.raw --profile=Win7SP1x64 hashdump -y SYSTEM -s SAM
-✅ Expected Output
+
+Expected Output:
 Usernames
-
 RIDs
-
 NTLM password hashes
 
 Exercise 3: Investigating Autorun Entries
-🎯 Objective
+
+Objective:
 Identify persistence mechanisms via registry autorun keys.
 
-🧪 Steps
-bash
-Copy code
+Steps:
 volatility -f memory_image.raw --profile=Win7SP1x64 printkey -o <SOFTWARE_HIVE_ADDRESS> -K "Microsoft\\Windows\\CurrentVersion\\Run"
-✅ Expected Output
+
+Expected Output:
 Programs configured to run at startup.
 
 Exercise 4: Examining User Assist Keys
-🎯 Objective
+
+Objective:
 Identify recently executed applications.
 
-🧪 Steps
-bash
-Copy code
+Steps:
 volatility -f memory_image.raw --profile=Win7SP1x64 userassist -i
-✅ Expected Output
+
+Expected Output:
 Application paths
-
 Execution counts
-
 Timestamps
 
 Exercise 5: Correlating Registry Artifacts
-🎯 Objective
+
+Objective:
 Correlate multiple registry artifacts.
 
-🧪 Steps
+Steps:
 Review SAM hive (user accounts)
-
 Review SOFTWARE hive (autorun entries)
-
 Review NTUSER.DAT (User Assist)
 
 Identify:
-
 Suspicious startup programs
-
 Unauthorized user accounts
-
 Unexpected application executions
 
-✅ Expected Output
+Expected Output:
 A detailed forensic assessment supported by registry evidence.
 
-📊 Key Learning Outcomes
+Key Learning Outcomes:
 Registry hive extraction from memory
-
 User account and credential analysis
-
 Malware persistence detection
-
 Behavioral analysis via User Assist
-
 Correlation of forensic artifacts
 EOF
-
-yaml
-Copy code
-
----
-
-### ✔️ THIS WILL WORK
-- One terminal paste
-- No broken markdown
-- No outside text
-- Works in **bash / zsh / WSL / Linux / macOS**
-
-If you want **the same thing as a `.sh` auto-lab script**, say **“make it executable”** and I’ll do it cleanly.
