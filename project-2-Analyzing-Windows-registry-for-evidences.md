@@ -1,120 +1,138 @@
-cat > README.md << 'EOF'
-# 🛡️ Analyzing Windows Registry for Evidence of Malicious Activity
+# 🧭 Lab: Analyzing Windows Registry for Evidence of Malicious Activity
 
-## 📌 Project Overview
-The Windows Registry is a critical hierarchical database that stores configuration settings and options for the Windows operating system and installed applications. During forensic investigations, analyzing registry artifacts extracted from memory can reveal evidence of malicious activity such as persistence mechanisms, unauthorized user accounts, and suspicious application execution.
-
-This project demonstrates how to use Volatility, a memory forensics framework, to extract and analyze Windows Registry hives from a memory image.
+A hands‑on lab using **Volatility** to extract and analyze Windows Registry hives from a memory image to find persistence, user activity, and other forensic artifacts.
 
 ---
 
-## 🧪 Lab Setup
-To complete this project, you will need:
-- A Windows operating system
-- A memory image (.raw, .mem, .dd)
-- A physical machine or virtual machine (VirtualBox / VMware)
+## 📋 Overview
+- **Goal:** Identify registry-based artifacts of malicious activity from a memory image
+- **Skills:** Memory forensics, Windows Registry analysis, command-line Volatility usage
+- **Estimated time:** 1–2 hours
 
 ---
 
-## 📚 Pre-requisites
-- Basic understanding of Windows OS internals
-- Familiarity with the Windows Registry
-- Command-line interface experience
-- Administrative privileges
-- Python 2.7 installed
+## 🔧 Lab Setup & Prerequisites
+- ✅ **Environment:** Windows analysis machine (physical or VM)
+- ✅ **Permissions:** Administrative privileges on the analysis machine
+- ✅ **Knowledge:** Basic Windows/Registry concepts and CLI familiarity
+
+Tools:
+- **Volatility** (Volatility 3 recommended for Python 3; Volatility 2 requires Python 2.7)
+- Optional: Registry Explorer, Rekall, Redline
+
+> ⚠️ Tip: Prefer Volatility 3 for new investigations unless you depend on legacy Volatility 2 plugins.
 
 ---
 
-## 🛠️ Tools Used
-### Volatility Framework
-Volatility is an advanced open-source memory forensics framework used to extract digital artifacts from volatile memory.
+## 🛠️ Installing Volatility
+1. Download from the official source: https://www.volatilityfoundation.org/releases 🔗
+2. Extract to your chosen directory
+3. Ensure Python compatibility (Volatility 2 → Python 2.7; Volatility 3 → Python 3.x)
+4. Verify installation:
+
+```sh
+volatility --help
+```
 
 ---
 
-cat > README.md << 'EOF'
-git clone https://github.com/volatilityfoundation/volatility.git
-cd volatility
-python vol.py -h
-Volatility 2.x requires Python 2.7
+## 🔍 Exercises
 
-Exercises
-
-Exercise 1: Extracting Windows Registry Hives
-
-Objective:
-Extract Windows Registry hives from a memory image using Volatility.
+### 1️⃣ Extracting Windows Registry Hives
+**Objective:** Dump registry hives from a memory image.
 
 Steps:
-volatility -f memory_image.raw imageinfo
-volatility -f memory_image.raw --profile=Win7SP1x64 hivelist
-volatility -f memory_image.raw --profile=Win7SP1x64 dumpregistry -o <VIRTUAL_ADDRESS> -D output/
+1. Discover the profile:
+```sh
+volatility -f <memory_image> imageinfo
+```
+2. List hives:
+```sh
+volatility -f <memory_image> --profile=<profile> hivelist
+```
+3. Dump a hive at a virtual address:
+```sh
+volatility -f <memory_image> --profile=<profile> dumpregistry -o <virtual_address> -D <output_directory>
+```
 
-Expected Output:
-Registry hives:
-SAM
-SYSTEM
-SOFTWARE
-NTUSER.DAT
+**Expected:** Hive files saved in `<output_directory>` (e.g., `SYSTEM`, `SAM`, `SOFTWARE`, `NTUSER.DAT`).
 
-Exercise 2: Analyzing the SAM Hive
+---
 
-Objective:
-Extract user account information and password hashes.
-
-Steps:
-volatility -f memory_image.raw --profile=Win7SP1x64 hashdump -y SYSTEM -s SAM
-
-Expected Output:
-Usernames
-RIDs
-NTLM password hashes
-
-Exercise 3: Investigating Autorun Entries
-
-Objective:
-Identify persistence mechanisms via registry autorun keys.
+### 2️⃣ Analyze the SAM Hive (User Accounts)
+**Objective:** Extract user account info and password hashes.
 
 Steps:
-volatility -f memory_image.raw --profile=Win7SP1x64 printkey -o <SOFTWARE_HIVE_ADDRESS> -K "Microsoft\\Windows\\CurrentVersion\\Run"
+1. Ensure SAM hive is extracted
+2. Run hashdump:
+```sh
+volatility -f <memory_image> --profile=<profile> hashdump -y <system_hive> -s <sam_hive>
+```
 
-Expected Output:
-Programs configured to run at startup.
+**Expected:** Usernames and NTLM password hash data for offline analysis.
 
-Exercise 4: Examining User Assist Keys
+---
 
-Objective:
-Identify recently executed applications.
-
-Steps:
-volatility -f memory_image.raw --profile=Win7SP1x64 userassist -i
-
-Expected Output:
-Application paths
-Execution counts
-Timestamps
-
-Exercise 5: Correlating Registry Artifacts
-
-Objective:
-Correlate multiple registry artifacts.
+### 3️⃣ Investigate Autorun Entries (SOFTWARE Hive)
+**Objective:** Detect persistence via autorun keys.
 
 Steps:
-Review SAM hive (user accounts)
-Review SOFTWARE hive (autorun entries)
-Review NTUSER.DAT (User Assist)
+1. Query the Run key in SOFTWARE hive:
+```sh
+volatility -f <memory_image> --profile=<profile> printkey -o <software_hive_virtual_address> -K "Microsoft\\Windows\\CurrentVersion\\Run"
+```
 
-Identify:
-Suspicious startup programs
-Unauthorized user accounts
-Unexpected application executions
+**Look for:** Unexpected entries, strange command lines, or suspicious paths.
 
-Expected Output:
-A detailed forensic assessment supported by registry evidence.
+---
 
-Key Learning Outcomes:
-Registry hive extraction from memory
-User account and credential analysis
-Malware persistence detection
-Behavioral analysis via User Assist
-Correlation of forensic artifacts
-EOF
+### 4️⃣ Examine UserAssist (NTUSER.DAT)
+**Objective:** Find recently executed programs for a user.
+
+Steps:
+1. Ensure `NTUSER.DAT` is dumped
+2. List UserAssist entries:
+```sh
+volatility -f <memory_image> --profile=<profile> userassist -i
+```
+
+**Expected:** App names, run counts, last-run times—useful to link suspicious actions to interactive sessions.
+
+---
+
+### 5️⃣ Correlate Registry Artifacts
+**Objective:** Build a timeline and hypothesis from multiple registry sources.
+
+Steps:
+1. Review SAM, SOFTWARE, NTUSER.DAT, SYSTEM and other hives
+2. Look for correlations (e.g., autorun entry + UserAssist execution by same user)
+3. Document findings with timestamps, hashes, and evidence paths
+
+**Tip:** Keep timestamps in UTC and preserve original hive files and command outputs for evidence.
+
+---
+
+## 📌 Reporting & Remediation Notes
+- Include: hive filenames, virtual addresses, command output (or screenshots), timestamps, and hashes
+- Recommend: isolate affected hosts, rotate credentials for compromised accounts, and run AV/EDR scans using observed indicators
+
+---
+
+## 💡 Further Reading & Tools
+- Volatility docs: https://www.volatilityfoundation.org/releases 🔗
+- Related tools: Rekall, Registry Explorer, Redline
+
+---
+
+## ✅ Quick Checklist
+- [ ] Verify image integrity (hash)
+- [ ] Run `imageinfo` → identify profile
+- [ ] Dump SYSTEM, SAM, SOFTWARE, NTUSER.DAT as needed
+- [ ] Run `hashdump`, `printkey`, `userassist` and other plugins
+- [ ] Correlate artifacts and produce a report
+
+---
+
+**Author:** Kitsonmorag — Blue Team Lab
+
+*Additions or feedback welcome. If you'd like, I can open a PR with this file and add it under `training/labs/`.*
